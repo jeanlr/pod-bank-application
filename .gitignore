@@ -1,0 +1,11 @@
+data
+.env
+.ipynb_checkpoints
+.venv
+__pycache__
+spark-warehouse
+catboost_info
+modelo.db
+avaliacao_ganho_modelos.xlsx
+mlruns
+mlartifacts
