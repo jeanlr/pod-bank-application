@@ -376,7 +376,7 @@ with mlflow.start_run():
 # Análise de performance por decil - conjunto de treino
 y_train.index = X_train_processed.index
 
-bins = 16  # Número de decis
+bins = 10  # Número de decis
 tab = pd.concat([X_train_processed[selected_features], y_train], axis=1).copy()
 tab['score'] = algoritmo.predict_proba(tab.drop(columns=['TARGET']))[:,0]  # Probabilidade de não evento
 tab['decile'] = pd.qcut(tab['score'], bins, labels=False)  # Divisão em decis
@@ -402,7 +402,7 @@ table_train
 # Análise de performance por decil - conjunto de teste
 y_test.index = X_test_processed.index
 
-bins = 16
+bins = 10
 tab = pd.concat([X_test_processed[selected_features], y_test], axis=1).copy()
 tab['score'] = algoritmo.predict_proba(tab.drop(columns=['TARGET']))[:,0]
 tab['decile'] = pd.qcut(tab['score'], bins, labels=False)
