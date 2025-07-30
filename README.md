@@ -26,11 +26,21 @@ O objetivo é reduzir a inadimplência na concessão de crédito da Pod Bank, tr
 A análise exploratória foi realizada em [eda.ipynb](notebooks/eda.ipynb), avaliando o dataset `application_train.csv`. Foram identificados padrões, limitações (como variáveis com alto percentual de nulos) e oportunidades analíticas, além de entender a distribuição do target (inadimplência).
 
 ### 3. Preparação dos Dados
+Os dados foram tratados e enriquecidos conforme: 
+
+### 3. Preparação dos Dados
 Os dados foram tratados e enriquecidos conforme [model-reg-log.ipynb](notebooks/model-reg-log.ipynb) e [train.py](notebooks/train.py):
-- Remoção de variáveis temporárias e com alta correlação.
-- Imputação de valores nulos (média para numéricas, moda para categóricas).
-- Codificação de variáveis categóricas (Target Encoding, OneHot).
-- Seleção de features relevantes via Random Forest e análise de importância.
+
+- **Criação dos books de variáveis:**  
+  Cada fonte relevante (Application, Bureau, Credit Card, POS Cash, Installments, Previous) teve seu próprio book de variáveis, detalhando o processo de agregação, transformação e criação de novas features. Esses books foram desenvolvidos nos notebooks da pasta [feature-store](notebooks/feature-store), utilizando técnicas como agregações temporais, cálculos de médias, totais, flags e categorização.
+
+- **Construção das ABTs (Analytical Base Tables):**  
+  As ABTs foram criadas a partir da junção dos books de variáveis com a tabela principal de clientes, consolidando todas as informações relevantes por SK_ID_CURR. O processo está documentado nos notebooks da pasta [abt](notebooks/abt), garantindo separação adequada entre treino e teste e rastreabilidade dos dados.
+
+- **Tratamento adicional:**  
+  Remoção de variáveis temporárias e com alta correlação, imputação de valores nulos (média para numéricas, moda para categóricas), codificação de variáveis categóricas (Target Encoding, OneHot), e seleção de features relevantes via Random Forest e análise de importância.
+
+Essas etapas garantiram uma base robusta e organizada para
 
 ### 4. Modelagem
 Dois fluxos principais:
