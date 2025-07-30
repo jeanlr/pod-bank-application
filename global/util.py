@@ -2531,3 +2531,220 @@ class TargetFeatureEncoder(BaseEstimator, TransformerMixin):
         X_reset = X.reset_index(drop=True)
 
         return pd.concat([X_reset.drop(columns=self.to_encode), target_df], axis=1)
+    
+    
+def boxplots_var_num(dataframe):
+    """
+    Plota boxplots para todas as variáveis numéricas do dataframe fornecido em um painel com 3 gráficos por linha.
+
+    :param dataframe: DataFrame para o qual os boxplots serão gerados.
+    """
+    # Seleciona apenas colunas numéricas
+    numeric_columns = dataframe.select_dtypes(include=['float64', 'int64']).columns
+
+    # Define o número de linhas com base no número de colunas numéricas
+    nrows = len(numeric_columns) // 3 + (len(numeric_columns) % 3 > 0)
+
+    # Inicializa o painel de gráficos
+    fig, axes = plt.subplots(nrows=nrows, ncols=3, figsize=(14, nrows * 4))
+
+    # Ajusta o layout
+    plt.tight_layout(pad=4)
+
+    # Configura estilo e paleta de cores
+    sns.set_style("whitegrid")
+
+    # Plota boxplots para cada coluna numérica
+    for i, column in enumerate(numeric_columns):
+        sns.boxplot(data=dataframe[column], ax=axes[i//3, i%3], color="skyblue")
+        axes[i//3, i%3].set_title(f'{column}', fontdict={'fontsize': 14, 'fontweight': 'bold'})
+        axes[i//3, i%3].set_ylabel('')
+
+    # Remove gráficos vazios (se houver)
+    for j in range(i+1, nrows*3):
+        fig.delaxes(axes.flatten()[j])
+
+    # Adiciona título principal
+    fig.suptitle("Análise descritiva - Boxplots", fontsize=20, fontweight='bold', y=1.00)
+    
+    
+def histograms_var_num(dataframe):
+    """
+    Plota histogramas corrigidos com a curva KDE (Kernel Density Estimation) para todas as variáveis numéricas
+    do dataframe fornecido em um painel com 3 gráficos por linha.
+
+    :param dataframe: DataFrame para o qual os histogramas serão gerados.
+    """
+    # Seleciona apenas colunas numéricas
+    numeric_columns = dataframe.select_dtypes(include=['float64', 'int64']).columns
+
+    # Define o número de linhas com base no número de colunas numéricas
+    nrows = len(numeric_columns) // 3 + (len(numeric_columns) % 3 > 0)
+
+    # Inicializa o painel de gráficos
+    fig, axes = plt.subplots(nrows=nrows, ncols=3, figsize=(14, nrows * 4))
+
+    # Ajusta o layout
+    plt.tight_layout(pad=4)
+
+    # Configura estilo e paleta de cores
+    sns.set_style("whitegrid")
+
+    # Plota histogramas com KDE para cada coluna numérica
+    for i, column in enumerate(numeric_columns):
+        sns.histplot(data=dataframe[column], ax=axes[i//3, i%3], color="skyblue", bins=30, kde=True)
+        axes[i//3, i%3].set_title(f'{column}', fontdict={'fontsize': 14, 'fontweight': 'bold'})
+        axes[i//3, i%3].set_ylabel('Frequência')
+        axes[i//3, i%3].tick_params(axis='both', which='major', labelsize=12)
+
+    # Remove gráficos vazios (se houver)
+    for j in range(i+1, nrows*3):
+        fig.delaxes(axes.flatten()[j])
+
+    # Adiciona título principal
+    fig.suptitle("Análise descritiva - Histograma com KDE", fontsize=20, fontweight='bold', y=1.00)
+    
+def plot_categorical_frequency_pt(df, corte_cardinalidade=30, graficos_por_linha=2):
+    """
+    Plota a frequência de categorias para variáveis categóricas em um DataFrame.
+
+    Parâmetros:
+    - df: DataFrame para plotagem.
+    - corte_cardinalidade: Cardinalidade máxima para uma coluna ser considerada (padrão é 30).
+    - graficos_por_linha: Quantidade de gráficos por linha (padrão é 3).
+
+    Retorna:
+    - Exibe os gráficos de barras.
+    """
+
+    # Gera metadados para o DataFrame
+    metadados = []
+    for coluna in df.columns:
+        metadados.append({
+            'Variável': coluna,
+            'Tipo': df[coluna].dtype,
+            'Cardinalidade': df[coluna].nunique()
+        })
+
+    df_metadados = pd.DataFrame(metadados)
+
+    # Filtra colunas com cardinalidade maior que o corte e tipos não numéricos
+    variaveis_categoricas = df_metadados[(df_metadados['Cardinalidade'] <= corte_cardinalidade) & (df_metadados['Tipo'] == 'object')]
+
+    # Calcula o número de linhas e colunas para os subplots
+    n_linhas = -(-len(variaveis_categoricas) // graficos_por_linha)  # Ceiling division
+    n_colunas = min(len(variaveis_categoricas), graficos_por_linha)
+
+    # Plota as variáveis categóricas
+    fig, axs = plt.subplots(nrows=n_linhas, ncols=n_colunas, figsize=(12, 4 * n_linhas))
+
+    for i, (idx, linha) in enumerate(variaveis_categoricas.iterrows()):
+        var = linha['Variável']
+        ax = axs[i // graficos_por_linha, i % graficos_por_linha]
+        df[var].value_counts().sort_index().plot(kind='bar', ax=ax, color='skyblue')
+        ax.set_title(f'Frequência em {var}')
+        ax.set_ylabel('Frequência')
+        ax.set_xlabel(var)
+
+    # Remove os eixos vazios, se houver
+    for j in range(i + 1, n_linhas * n_colunas):
+        axs[j // graficos_por_linha, j % graficos_por_linha].axis('off')
+
+    plt.tight_layout()
+    plt.show()
+    
+def kdeplots_var_num_target(dataframe, target_column):
+    """
+    Plota gráficos kdeplot (Kernel Density Estimation) para todas as variáveis numéricas do DataFrame,
+    discriminando as curvas de acordo com o valor da coluna target.
+
+    :param dataframe: DataFrame contendo as variáveis numéricas e a coluna target.
+    :param target_column: Nome da coluna target.
+    """
+    # Seleciona apenas colunas numéricas
+    numeric_columns = dataframe.select_dtypes(include=['float64', 'int64']).columns
+
+    # Define o número de linhas com base no número de colunas numéricas
+    nrows = len(numeric_columns) // 3 + (len(numeric_columns) % 3 > 0)
+
+    # Inicializa o painel de gráficos
+    fig, axes = plt.subplots(nrows=nrows, ncols=3, figsize=(14, nrows * 4))
+
+    # Ajusta o layout
+    plt.tight_layout(pad=4)
+
+    # Configura estilo e paleta de cores
+    sns.set_style("whitegrid")
+
+    # Plota kdeplots para cada coluna numérica, discriminando as curvas pelo valor da coluna target
+    for i, column in enumerate(numeric_columns):
+        sns.kdeplot(data=dataframe[dataframe[target_column] == 1][column], ax=axes[i//3, i%3], color="blue", label="1", fill=True, warn_singular=False)
+        sns.kdeplot(data=dataframe[dataframe[target_column] == 0][column], ax=axes[i//3, i%3], color="red", label="0", fill=True, warn_singular=False)
+        axes[i//3, i%3].set_title(f'{column}', fontdict={'fontsize': 14, 'fontweight': 'bold'})
+        axes[i//3, i%3].set_ylabel('Densidade')
+        axes[i//3, i%3].tick_params(axis='both', which='major', labelsize=12)
+        if i == 0:
+            axes[i//3, i%3].legend(title=target_column)
+
+    # Remove gráficos vazios (se houver)
+    for j in range(i+1, nrows*3):
+        fig.delaxes(axes.flatten()[j])
+
+    # Adiciona título principal
+    fig.suptitle("Análise descritiva - Gráfico KDE por Target", fontsize=20, fontweight='bold', y=1.00)
+    
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+def plot_cat_vs_target_percentage(dataframe, target_column, cutoff=10):
+    """
+    Plota gráficos de barras empilhadas 100% para analisar as variáveis categóricas em relação ao target,
+    limitando o número de variáveis de acordo com um valor de cutoff.
+
+    :param dataframe: DataFrame contendo as variáveis categóricas e a coluna target.
+    :param target_column: Nome da coluna target.
+    :param cutoff: Valor de cutoff para limitar o número de variáveis categóricas plotadas (padrão é 10).
+    """
+    # Seleciona apenas colunas categóricas
+    categorical_columns = dataframe.select_dtypes(include=['object', 'category']).columns
+
+    # Filtra as colunas com base no cutoff
+    categorical_columns_filtered = [col for col in categorical_columns if dataframe[col].nunique() <= cutoff]
+
+    # Define o número de linhas e colunas para os subplots
+    n_rows = len(categorical_columns_filtered) // 3 + (len(categorical_columns_filtered) % 3 > 0)
+    n_cols = min(len(categorical_columns_filtered), 3)
+
+    # Cria subplots
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=(15, n_rows * 5))
+
+    # Ajusta o layout
+    plt.tight_layout(pad=4)
+
+    # Loop pelas colunas categóricas filtradas
+    for i, column in enumerate(categorical_columns_filtered):
+        # Calcula proporções de cada categoria para cada valor do target
+        prop_df = (dataframe.groupby([column, target_column]).size() / dataframe.groupby(column).size()).unstack()
+
+        # Plota o gráfico de barras empilhadas 100%
+        ax = axes[i // n_cols, i % n_cols] if n_rows > 1 else axes[i]
+        prop_df.plot(kind='bar', stacked=True, ax=ax)
+        ax.set_title(column, fontsize=14)
+        ax.set_ylabel('Porcentagem')
+        ax.tick_params(axis='both', which='major', labelsize=12)
+
+        # Rotaciona as labels do eixo x
+        ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right')
+
+        # Ajusta o layout do subplot
+        plt.subplots_adjust(wspace=0.5, hspace=0.7)
+
+    # Remove subplots vazios
+    for j in range(len(categorical_columns_filtered), n_rows * n_cols):
+        if n_rows > 1:
+            fig.delaxes(axes.flatten()[j])
+        else:
+            fig.delaxes(axes)
+
+    # Adiciona título principal
+    fig.suptitle("Análise de Variáveis Categóricas em relação ao Target (Porcentagem)", fontsize=20, fontweight='bold', y=1.02)
