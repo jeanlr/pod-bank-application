@@ -171,7 +171,7 @@ features = pd.DataFrame({
 features = features.sort_values(by='Importance', ascending=False)
 
 # Definindo ponto de corte para seleção (10% da importância máxima)
-cutoff_maximp = 0.1
+cutoff_maximp = 0.06
 cutoff = cutoff_maximp * feature_importances.max()
 
 # Selecionando features acima do corte
@@ -254,15 +254,16 @@ cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 def objective(trial):
     # Espaço de busca de hiperparâmetros
     params = {
-        'n_estimators': trial.suggest_int('n_estimators', 5, 50),
+        'n_estimators': trial.suggest_int('n_estimators', 5, 40),
         'learning_rate': trial.suggest_float('learning_rate', 0.01, 0.5, log=True),
         'max_depth': trial.suggest_int('max_depth', 3, 10),
-        'num_leaves': trial.suggest_int('num_leaves', 10, 100),
+        'num_leaves': trial.suggest_int('num_leaves', 10, 50),
         'reg_alpha': trial.suggest_float('reg_alpha', 0.0, 1.0),
         'reg_lambda': trial.suggest_float('reg_lambda', 0.0, 1.0),
-        'subsample': trial.suggest_float('subsample', 0.5, 1.0),
+        'subsample': trial.suggest_float('subsample', 0.0, 1.0),
+        'min_child_samples': trial.suggest_int('min_child_samples', 10, 100),
         'colsample_bytree': trial.suggest_float('colsample_bytree', 0.5, 1.0),
-        'scale_pos_weight': trial.suggest_float('scale_pos_weight', 2, 10),
+        'scale_pos_weight': trial.suggest_float('scale_pos_weight', 0.5, 10),
         'boosting_type': trial.suggest_categorical('boosting_type', ['gbdt', 'dart']),
         "metric": "auc",
         'objective': 'binary',
@@ -284,7 +285,7 @@ study.add_trials(study.trials)
 
 try:
     # Execução da otimização
-    study.optimize(objective, n_trials=50, timeout=600, callbacks=[early_stopping_opt])
+    study.optimize(objective, n_trials=50, timeout=800, callbacks=[early_stopping_opt])
 except EarlyStoppingExceeded:
     print(f'EarlyStopping Exceeded: No new best scores on iters {OPTUNA_EARLY_STOPING}')
 
