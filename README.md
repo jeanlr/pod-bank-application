@@ -66,5 +66,5 @@ Você pode verificar a apresentação [Projeto_Reducao_Inadimplencia_Pod_Bank.pp
 
 ## Portfólio e LinkedIn
 
-- **Portfólio:** [https://jeanlr.github.io/portfolio-pessoal/](https://jeanlr.github.io/portifolio-pessoal/)
+- **Portfólio:** [https://sites.google.com/view/jeanlimarodovalho/p%C3%A1gina-inicial](https://sites.google.com/view/jeanlimarodovalho/p%C3%A1gina-inicial)
 - **LinkedIn:** [https://www.linkedin.com/in/jeanlimarodovalho](https://www.linkedin.com/in/jeanlimarodovalho)
